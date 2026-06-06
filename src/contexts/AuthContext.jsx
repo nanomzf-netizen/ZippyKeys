@@ -3,10 +3,14 @@ import {
   createUserWithEmailAndPassword, 
   signInWithEmailAndPassword, 
   signOut, 
-  onAuthStateChanged 
+  onAuthStateChanged,
+  signInWithPopup,
+  GoogleAuthProvider
 } from 'firebase/auth';
 import { ref, set, get, serverTimestamp } from 'firebase/database';
 import { auth, db } from '../lib/firebase';
+
+const googleProvider = new GoogleAuthProvider();
 
 const AuthContext = createContext();
 
@@ -154,6 +158,80 @@ export function AuthProvider({ children }) {
     }
   };
 
+  const loginWithGoogle = async () => {
+    try {
+      const result = await signInWithPopup(auth, googleProvider);
+      const firebaseUser = result.user;
+      
+      const userRef = ref(db, `users/${firebaseUser.uid}`);
+      const snapshot = await get(userRef);
+      
+      if (!snapshot.exists()) {
+        await signOut(auth);
+        return { success: false, error: 'Akun tidak ditemukan. Silakan daftar terlebih dahulu.' };
+      }
+      
+      const userData = snapshot.val();
+      setUser(firebaseUser);
+      setUsername(userData.username);
+      setIsLoggedIn(true);
+      return { success: true };
+    } catch (error) {
+      console.error('Google login error:', error);
+      let errorMessage = error.message;
+      if (error.code === 'auth/popup-closed-by-user') {
+         errorMessage = 'Login dibatalkan oleh pengguna';
+      }
+      return { success: false, error: errorMessage };
+    }
+  };
+
+  const registerWithGoogle = async (newUsername) => {
+    try {
+      if (!newUsername || newUsername.trim().length < 3) {
+        return { success: false, error: 'Username minimal 3 karakter untuk daftar dengan Google' };
+      }
+      if (newUsername.trim().length > 20) {
+        return { success: false, error: 'Username maksimal 20 karakter' };
+      }
+
+      const result = await signInWithPopup(auth, googleProvider);
+      const firebaseUser = result.user;
+      
+      const userRef = ref(db, `users/${firebaseUser.uid}`);
+      const snapshot = await get(userRef);
+      
+      if (snapshot.exists()) {
+        const userData = snapshot.val();
+        setUser(firebaseUser);
+        setUsername(userData.username);
+        setIsLoggedIn(true);
+        return { success: true };
+      }
+      
+      await set(userRef, {
+        username: newUsername.trim(),
+        email: firebaseUser.email,
+        coins: 100,
+        createdAt: serverTimestamp(),
+        vehicles: ['car1'],
+        equippedVehicle: 'car1'
+      });
+      
+      setUser(firebaseUser);
+      setUsername(newUsername.trim());
+      setIsLoggedIn(true);
+      return { success: true };
+    } catch (error) {
+      console.error('Google register error:', error);
+      let errorMessage = error.message;
+      if (error.code === 'auth/popup-closed-by-user') {
+         errorMessage = 'Pendaftaran dibatalkan oleh pengguna';
+      }
+      return { success: false, error: errorMessage };
+    }
+  };
+
   const logout = async () => {
     try {
       await signOut(auth);
@@ -174,6 +252,8 @@ export function AuthProvider({ children }) {
     loading,
     register,
     login,
+    loginWithGoogle,
+    registerWithGoogle,
     logout
   };
 

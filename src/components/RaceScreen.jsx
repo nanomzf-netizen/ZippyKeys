@@ -37,6 +37,7 @@ export default function RaceScreen({ roomCode, isMultiplayer = false, onFinish, 
   
   // Multiplayer
   const [players, setPlayers] = useState({});
+  const [capsLockActive, setCapsLockActive] = useState(false);
   
   const inputRef = useRef(null);
   const timerRef = useRef(null);
@@ -221,6 +222,10 @@ export default function RaceScreen({ roomCode, isMultiplayer = false, onFinish, 
 
   // Handle keydown
   const handleKeyDown = useCallback((e) => {
+    if (e.getModifierState) {
+      setCapsLockActive(e.getModifierState('CapsLock'));
+    }
+
     if (finished) return;
     
     // Start timer on first character
@@ -237,6 +242,20 @@ export default function RaceScreen({ roomCode, isMultiplayer = false, onFinish, 
       onCancel();
     }
   }, [finished, started, startTimer, onCancel]);
+
+  useEffect(() => {
+    const checkCapsLock = (e) => {
+      if (e.getModifierState) {
+        setCapsLockActive(e.getModifierState('CapsLock'));
+      }
+    };
+    window.addEventListener('keyup', checkCapsLock);
+    window.addEventListener('keydown', checkCapsLock);
+    return () => {
+      window.removeEventListener('keyup', checkCapsLock);
+      window.removeEventListener('keydown', checkCapsLock);
+    };
+  }, []);
 
   // Update accuracy
   useEffect(() => {
@@ -335,6 +354,32 @@ export default function RaceScreen({ roomCode, isMultiplayer = false, onFinish, 
       padding: '48px 24px',
       position: 'relative'
     }}>
+      {capsLockActive && (
+        <div style={{
+          position: 'fixed',
+          top: '24px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          backgroundColor: 'var(--danger)',
+          color: 'white',
+          padding: '6px 12px',
+          borderRadius: '9999px',
+          fontSize: '12px',
+          fontWeight: 'bold',
+          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+          zIndex: 100,
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px'
+        }}>
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 15V3"></path>
+            <path d="m5 10 7-7 7 7"></path>
+            <rect x="4" y="19" width="16" height="2" rx="1"></rect>
+          </svg>
+          Caps Lock Aktif
+        </div>
+      )}
       {/* ESC hint - top left */}
       <div style={{
         position: 'absolute',
@@ -666,8 +711,8 @@ export default function RaceScreen({ roomCode, isMultiplayer = false, onFinish, 
           opacity: 0.3;
         }
         .word-passed-incorrect .letter {
-          color: var(--danger);
-          opacity: 0.3;
+          color: var(--text-h);
+          opacity: 0.8;
         }
         
         /* Letter states */
@@ -701,7 +746,6 @@ export default function RaceScreen({ roomCode, isMultiplayer = false, onFinish, 
           background-color: #ef4444 !important;
           opacity: 1 !important;
           border-radius: 4px;
-          padding: 2px 4px;
         }
         
         /* Cursor position - karakter yang akan diketik (highlight jelas) */

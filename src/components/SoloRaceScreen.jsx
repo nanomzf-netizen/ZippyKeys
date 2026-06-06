@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 export default function SoloRaceScreen({ onFinish, onCancel }) {
     const typingAreaRef = useRef(null);
@@ -7,6 +7,7 @@ export default function SoloRaceScreen({ onFinish, onCancel }) {
     const statTimeRef = useRef(null);
     const statWpmRef = useRef(null);
     const statAccRef = useRef(null);
+    const [capsLockActive, setCapsLockActive] = useState(false);
     
     // We keep all mutable logic in a ref to avoid React re-renders and strictly follow the user's requested DOM-based performance approach
     const logic = useRef({
@@ -59,6 +60,8 @@ export default function SoloRaceScreen({ onFinish, onCancel }) {
             l.spans = [];
             
             const fragment = document.createDocumentFragment();
+            let currentWordSpan = document.createElement('span');
+            currentWordSpan.className = "inline-block";
             
             for (let i = 0; i < l.state.textToType.length; i++) {
                 const char = l.state.textToType[i];
@@ -70,8 +73,17 @@ export default function SoloRaceScreen({ onFinish, onCancel }) {
                 charSpan.textContent = char; 
                 
                 spanContainer.appendChild(charSpan);
-                fragment.appendChild(spanContainer);
+                currentWordSpan.appendChild(spanContainer);
                 l.spans.push(spanContainer);
+                
+                if (char === ' ') {
+                    fragment.appendChild(currentWordSpan);
+                    currentWordSpan = document.createElement('span');
+                    currentWordSpan.className = "inline-block";
+                }
+            }
+            if (currentWordSpan.childNodes.length > 0) {
+                fragment.appendChild(currentWordSpan);
             }
             
             const endContainer = document.createElement('span');
@@ -96,7 +108,7 @@ export default function SoloRaceScreen({ onFinish, onCancel }) {
             if (status === 'correct') {
                 charSpan.className = "char-span text-[var(--text-h)] transition-colors duration-100";
             } else if (status === 'incorrect') {
-                charSpan.className = "char-span text-[var(--bg)] bg-[var(--danger)] rounded-sm px-[2px] transition-colors duration-100";
+                charSpan.className = "char-span text-[var(--bg)] bg-[var(--danger)] rounded-sm transition-colors duration-100";
             } else {
                 charSpan.className = "char-span text-[var(--text-dim)] transition-colors duration-100";
             }
@@ -138,7 +150,7 @@ export default function SoloRaceScreen({ onFinish, onCancel }) {
 
             let correct = 0;
             for (let i = 0; i < l.state.typedChars.length; i++) {
-                if (l.state.typedChars[i] === l.state.textToType[i]) {
+                if (l.charEvaluations[i] === 'correct') {
                     correct++;
                 }
             }
@@ -350,6 +362,10 @@ export default function SoloRaceScreen({ onFinish, onCancel }) {
         }
 
         function handleKeyDown(e) {
+            if (e.getModifierState) {
+                setCapsLockActive(e.getModifierState('CapsLock'));
+            }
+
             if (e.key === 'Shift' || e.key === 'Control' || e.key === 'Alt' || e.key === 'Meta') return;
 
             if (e.key === 'Escape') {
@@ -357,11 +373,14 @@ export default function SoloRaceScreen({ onFinish, onCancel }) {
                 return;
             }
 
-            if (l.state.status === 'idle' && e.key.length === 1) {
-                l.state.status = 'typing';
-                l.startTime = Date.now();
-                let timeLeft = parseInt(l.state.duration);
-                if (statTime) statTime.innerText = timeLeft;
+            if (l.state.status === 'idle') {
+                if (e.key === ' ') return;
+                
+                if (e.key.length === 1) {
+                    l.state.status = 'typing';
+                    l.startTime = Date.now();
+                    let timeLeft = parseInt(l.state.duration);
+                    if (statTime) statTime.innerText = timeLeft;
 
                 if (liveStats) {
                     liveStats.classList.remove('opacity-0');
@@ -387,6 +406,7 @@ export default function SoloRaceScreen({ onFinish, onCancel }) {
                         finishRace();
                     }
                 }, 1000);
+                }
             }
 
             if (l.state.status !== 'finished') {
@@ -423,11 +443,11 @@ export default function SoloRaceScreen({ onFinish, onCancel }) {
                                 if (l.state.textToType[i] === ' ') {
                                     l.state.typedChars += ' ';
                                     l.charEvaluations.push('correct');
-                                    updateCharVisuals(i, 'correct');
+                                    updateCharVisuals(i, 'idle'); // Leave space visual idle
                                 } else {
                                     l.state.typedChars += l.state.textToType[i];
                                     l.charEvaluations.push('missed');
-                                    updateCharVisuals(i, 'correct');
+                                    updateCharVisuals(i, 'idle'); // Visually look untyped
                                 }
                             }
                             updateCursorPosition();
@@ -456,12 +476,20 @@ export default function SoloRaceScreen({ onFinish, onCancel }) {
             }
         }
 
+        function handleKeyUp(e) {
+            if (e.getModifierState) {
+                setCapsLockActive(e.getModifierState('CapsLock'));
+            }
+        }
+
         window.addEventListener('keydown', handleKeyDown);
+        window.addEventListener('keyup', handleKeyUp);
         updateSettingsUI();
         resetTest();
 
         return () => {
             window.removeEventListener('keydown', handleKeyDown);
+            window.removeEventListener('keyup', handleKeyUp);
             clearInterval(l.timerInterval);
             delete window.resetTestGlobal;
             delete window.setSettingGlobal;
@@ -470,6 +498,16 @@ export default function SoloRaceScreen({ onFinish, onCancel }) {
 
     return (
         <div className="min-h-screen bg-[var(--bg)] flex flex-col items-center justify-center font-sans selection:bg-[var(--primary)] selection:text-[var(--primary-fg)]" style={{ fontFamily: 'ui-sans-serif, system-ui, sans-serif' }}>
+            {capsLockActive && (
+                <div className="fixed top-6 left-1/2 -translate-x-1/2 bg-[var(--danger)] text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-md z-[100] flex items-center gap-2 animate-pulse">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M12 15V3"></path>
+                        <path d="m5 10 7-7 7 7"></path>
+                        <rect x="4" y="19" width="16" height="2" rx="1"></rect>
+                    </svg>
+                    Caps Lock Aktif
+                </div>
+            )}
             <style>{`
                 .char-span { white-space: pre; }
             `}</style>
