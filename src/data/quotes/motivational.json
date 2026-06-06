@@ -1,0 +1,56 @@
+{
+  "language": "mixed",
+  "category": "quotes",
+  "quotes": [
+    {
+      "id": "mot_001",
+      "text": "The harder you work for something the greater you'll feel when you achieve it",
+      "author": "Unknown"
+    },
+    {
+      "id": "mot_002",
+      "text": "Dream bigger do bigger",
+      "author": "Unknown"
+    },
+    {
+      "id": "mot_003",
+      "text": "Don't stop when you're tired stop when you're done",
+      "author": "Unknown"
+    },
+    {
+      "id": "mot_004",
+      "text": "Wake up with determination go to bed with satisfaction",
+      "author": "Unknown"
+    },
+    {
+      "id": "mot_005",
+      "text": "Do something today that your future self will thank you for",
+      "author": "Unknown"
+    },
+    {
+      "id": "mot_006",
+      "text": "Little things make big days",
+      "author": "Unknown"
+    },
+    {
+      "id": "mot_007",
+      "text": "It's going to be hard but hard does not mean impossible",
+      "author": "Unknown"
+    },
+    {
+      "id": "mot_008",
+      "text": "Don't wait for opportunity create it",
+      "author": "Unknown"
+    },
+    {
+      "id": "mot_009",
+      "text": "Sometimes we're tested not to show our weaknesses but to discover our strengths",
+      "author": "Unknown"
+    },
+    {
+      "id": "mot_010",
+      "text": "The key to success is to focus on goals not obstacles",
+      "author": "Unknown"
+    }
+  ]
+}

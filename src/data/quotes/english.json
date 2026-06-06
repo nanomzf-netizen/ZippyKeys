@@ -1,0 +1,57 @@
+{
+  "language": "english",
+  "category": "quotes",
+  "quotes": [
+    {
+      "id": "en_001",
+      "text": "The only way to do great work is to love what you do",
+      "author": "Steve Jobs"
+    },
+    {
+      "id": "en_002",
+      "text": "Life is what happens when you're busy making other plans",
+      "author": "John Lennon"
+    },
+    {
+      "id": "en_003",
+      "text": "The future belongs to those who believe in the beauty of their dreams",
+      "author": "Eleanor Roosevelt"
+    },
+    {
+      "id": "en_004",
+      "text": "It is during our darkest moments that we must focus to see the light",
+      "author": "Aristotle"
+    },
+    {
+      "id": "en_005",
+      "text": "Be yourself everyone else is already taken",
+      "author": "Oscar Wilde"
+    },
+    {
+      "id": "en_006",
+      "text": "In the end we only regret the chances we didn't take",
+      "author": "Lewis Carroll"
+    },
+    {
+      "id": "en_007",
+      "text": "The only impossible journey is the one you never begin",
+      "author": "Tony Robbins"
+    },
+    {
+      "id": "en_008",
+      "text": "Success is not final failure is not fatal it is the courage to continue that counts",
+      "author": "Winston Churchill"
+    },
+    {
+      "id": "en_009",
+      "text": "Believe you can and you're halfway there",
+      "author": "Theodore Roosevelt"
+    },
+    {
+      "id": "en_010",
+      "text": "The best time to plant a tree was twenty years ago the second best time is now",
+      "author": "Chinese Proverb"
+    }
+  ]
+}
+s
