@@ -46,6 +46,7 @@ export default function RaceScreen({ roomCode, isMultiplayer = false, onFinish, 
   const containerRef = useRef(null);
   
   const currentWord = words[wordIndex] || '';
+  const isSpectator = isMultiplayer && players[user?.uid]?.role === 'spectator';
 
   // Show/hide controls on typing
   useEffect(() => {
@@ -186,7 +187,7 @@ export default function RaceScreen({ roomCode, isMultiplayer = false, onFinish, 
 
   // Handle input
   const handleInputChange = useCallback((e) => {
-    if (finished || !started) return;
+    if (finished || !started || isSpectator) return;
 
     const val = e.target.value;
 
@@ -226,7 +227,7 @@ export default function RaceScreen({ roomCode, isMultiplayer = false, onFinish, 
       setCapsLockActive(e.getModifierState('CapsLock'));
     }
 
-    if (finished) return;
+    if (finished || isSpectator) return;
     
     // Start timer on first character
     if (!started && e.key.length === 1 && !e.ctrlKey && !e.metaKey && e.key !== ' ') {
@@ -592,7 +593,7 @@ export default function RaceScreen({ roomCode, isMultiplayer = false, onFinish, 
           }}
         >
           {/* Start Hint - center overlay */}
-          {!started && (
+          {!started && !isSpectator && (
             <div style={{
               position: 'absolute',
               top: '50%',
@@ -621,8 +622,38 @@ export default function RaceScreen({ roomCode, isMultiplayer = false, onFinish, 
             </div>
           )}
 
+          {/* Spectator Notice */}
+          {isSpectator && (
+            <div style={{
+              position: 'absolute',
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
+              textAlign: 'center',
+              zIndex: 20,
+              pointerEvents: 'none'
+            }}>
+              <div style={{
+                fontSize: '18px',
+                fontWeight: '700',
+                color: 'var(--primary)',
+                marginBottom: '8px',
+                textShadow: '0 2px 10px rgba(0,0,0,0.1)'
+              }}>
+                Menonton Pertandingan
+              </div>
+              <div style={{
+                fontSize: '13px',
+                color: 'var(--text-dim)',
+                fontWeight: '500'
+              }}>
+                Nikmati balapan dari kursi penonton!
+              </div>
+            </div>
+          )}
+
           {/* Stats - larger, bottom right */}
-          {started && (
+          {started && !isSpectator && (
             <div style={{
               position: 'absolute',
               bottom: '20px',

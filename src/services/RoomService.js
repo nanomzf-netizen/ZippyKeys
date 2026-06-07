@@ -57,7 +57,8 @@ class RoomService {
             progress: 0,
             isReady: false,
             isFinished: false,
-            position: 0
+            position: 0,
+            role: 'racer'
           }
         }
       };
@@ -91,8 +92,8 @@ class RoomService {
       }
 
       const playerCount = room.players ? Object.keys(room.players).length : 0;
-      if (playerCount >= 8) {
-        return { success: false, error: 'Room sudah penuh (max 8 pemain)' };
+      if (playerCount >= 4) {
+        return { success: false, error: 'Room sudah penuh (max 4 pemain)' };
       }
 
       // Check if user already in room
@@ -109,7 +110,8 @@ class RoomService {
         progress: 0,
         isReady: false,
         isFinished: false,
-        position: 0
+        position: 0,
+        role: 'racer'
       });
 
       return { success: true, roomCode, room };
@@ -155,6 +157,53 @@ class RoomService {
       return { success: true };
     } catch (error) {
       console.error('Set ready error:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
+   * Set player role (racer/spectator)
+   */
+  async setPlayerRole(roomCode, userId, role) {
+    try {
+      const roleRef = ref(db, `rooms/${roomCode}/players/${userId}/role`);
+      await set(roleRef, role);
+      
+      // If spectator, they don't need to be ready
+      if (role === 'spectator') {
+        const readyRef = ref(db, `rooms/${roomCode}/players/${userId}/isReady`);
+        await set(readyRef, true);
+      } else {
+        const readyRef = ref(db, `rooms/${roomCode}/players/${userId}/isReady`);
+        await set(readyRef, false);
+      }
+      
+      return { success: true };
+    } catch (error) {
+      console.error('Set role error:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
+   * Update room settings
+   */
+  async updateRoomSettings(roomCode, settings) {
+    try {
+      const roomRef = ref(db, `rooms/${roomCode}/settings`);
+      await update(roomRef, settings);
+      
+      // Regenerate text based on new settings
+      const newText = await TextProvider.generateInfiniteText(
+        settings.textMode || 'words',
+        settings.textCategory || 'english',
+        parseInt(settings.duration || '30', 10)
+      );
+      await update(ref(db, `rooms/${roomCode}`), { text: newText });
+
+      return { success: true };
+    } catch (error) {
+      console.error('Update settings error:', error);
       return { success: false, error: error.message };
     }
   }

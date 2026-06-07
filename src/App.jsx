@@ -7,6 +7,7 @@ import Topbar            from './components/Topbar';
 import Sidebar           from './components/Sidebar';
 import HomePage          from './components/HomePage';
 import RaceScreen        from './components/RaceScreen';
+import MultiplayerRaceArena from './components/MultiplayerRaceArena';
 import ResultScreen      from './components/ResultScreen';
 import ThemeModal        from './components/ThemeModal';
 import ProfileModal      from './components/ProfileModal';
@@ -128,10 +129,17 @@ function AppContent() {
               onMultiplayer={handleStartMultiplayer}
             />
           )}
-          {view === VIEW.RACE && (
+          {view === VIEW.RACE && gameMode === 'solo' && (
             <RaceScreen
+              roomCode={null}
+              isMultiplayer={false}
+              onFinish={handleFinish}
+              onCancel={handleBackToHome}
+            />
+          )}
+          {view === VIEW.RACE && gameMode === 'multiplayer' && (
+            <MultiplayerRaceArena
               roomCode={roomCode}
-              isMultiplayer={gameMode === 'multiplayer'}
               onFinish={handleFinish}
               onCancel={handleBackToHome}
             />
